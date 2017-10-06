@@ -1,0 +1,3 @@
+#!/bin/bash
+
+parallel -k 'echo -e "\f\n#{}:"; ssh {} "echo stat | nc localhost 2181"' ::: "$@"
