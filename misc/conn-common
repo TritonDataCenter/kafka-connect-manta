@@ -16,6 +16,8 @@ error() {
 conn-create() {
     # Usage: conn-create CONNECTOR-CONFIG
     [ $# -ne 1 ] && error 1 "wrong number of argument(s)" && return 1
+    [ ! -f "$1" ] && error 1 "file not found: $1" && return 1
+    
     curl -s -d@$1 --url "$CONNECT_ENDPOINT/connectors" -H 'Content-Type: application/json' | json
 }
 

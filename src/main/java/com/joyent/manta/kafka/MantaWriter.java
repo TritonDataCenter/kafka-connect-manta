@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.Map;
 
 public class MantaWriter {
-    private static final Logger log = LoggerFactory.getLogger(MantaWriter.class);
+    private static Logger log = LoggerFactory.getLogger(MantaWriter.class);
 
     // out, outPath, and mantaPath will be determined on the first call to put()
     private ObjectFactory factory;
@@ -31,11 +31,11 @@ public class MantaWriter {
     private long objectSize;
     private String mantaShouldFail;
 
-    public MantaWriter(MantaClient mantaClient, Map<String, String> context) {
+    public MantaWriter(final MantaClient mantaClient, final Map<String, String> context) {
         this(mantaClient, context, new ObjectFactory());
     }
 
-    public MantaWriter(MantaClient mantaClient, Map<String, String> context, ObjectFactory factory) {
+    public MantaWriter(final MantaClient mantaClient, final Map<String, String> context, final ObjectFactory factory) {
         this.factory = factory;
 
         this.manta = mantaClient;
@@ -48,34 +48,35 @@ public class MantaWriter {
     }
 
     void closeWriter() {
-        if (fileWriter == null)
+        if (fileWriter == null) {
             return;
+        }
 
         try {
             fileWriter.delete();
             fileWriter.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             log.warn("closing fileWriter failed", e);
-        }
-        finally {
+        } finally {
             fileWriter = null;
         }
     }
 
-    void openLocalChunkIfNotExist(SinkRecord firstRecord) throws IOException {
-        if (this.firstRecord != null)
+    void openLocalChunkIfNotExist(final SinkRecord firstRecord) throws IOException {
+        if (this.firstRecord != null) {
             return;
+        }
 
         try {
             this.firstRecord = firstRecord;
             fileWriter = factory.getObject(LocalObjectWriter.class, new LocalObjectWriter(objectClass));
-            mantaPathname = factory.getObject(MantaPathname.class, new MantaPathname(manta.getContext(), objectPattern, firstRecord));
+            mantaPathname = factory.getObject(MantaPathname.class,
+                                              new MantaPathname(manta.getContext(), objectPattern, firstRecord));
 
             log.info("TEMP[#%d]: {}", firstRecord.kafkaPartition(), fileWriter.getPath());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             this.firstRecord = null;
+
             closeWriter();
             throw e;
         }
@@ -87,48 +88,50 @@ public class MantaWriter {
 
             manta.putDirectory(mantaPathname.getDirectory(), true);
 
-            try (InputStream is = factory.getObject(BufferedInputStream.class, new BufferedInputStream(new FileInputStream(fileWriter.getPath())))) {
+            try (InputStream is = factory.getObject(BufferedInputStream.class,
+                                                    new BufferedInputStream(new FileInputStream(fileWriter.getPath())))) {
                 // MantaObjectResponse resp = manta.put(mantaPathname.toString(), fileWriter.getPath());
-                if (!mantaShouldFail.isEmpty() && Files.exists(Paths.get(mantaShouldFail)))
+                if (!mantaShouldFail.isEmpty() && Files.exists(Paths.get(mantaShouldFail))) {
                     throw new IOException("Simulating Manta client exception.");
+                }
 
                 MantaObjectResponse resp = manta.put(mantaPathname.toString(), is, fileWriter.getSize(), null, null);
                 log.info("manta resp: {}", resp);
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             // ignored
             log.error(String.format("IOException on MantaClient: %s", e.getMessage()), e);
             throw e;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("uncatched exception", e);
             throw e;
-        }
-        finally {
+        } finally {
             firstRecord = null;
             closeWriter();
         }
     }
 
     public void flush() throws IOException {
-        if (fileWriter == null || fileWriter.getWrittenCount() == 0)
+        if (fileWriter == null || fileWriter.getWrittenCount() == 0) {
             return;
+        }
 
         closeLocalChunk();
     }
 
-    public void put(Collection<SinkRecord> records) throws IOException {
+    public void put(final Collection<SinkRecord> records) throws IOException {
         for (SinkRecord rec: records) {
             openLocalChunkIfNotExist(rec);
 
-            fileWriter.write(String.format("%s[%d:%10d]: %s", rec.topic(), rec.kafkaPartition(), rec.kafkaOffset(), String.valueOf(rec.value())));
+            fileWriter.write(String.format("%s[%d:%10d]: %s",
+                                           rec.topic(), rec.kafkaPartition(), rec.kafkaOffset(), String.valueOf(rec.value())));
 
             // TODO: if the size of the out is too much, we need to flush manually.
-            if (objectSize > 0 && objectSize >= fileWriter.getSize())
+            if (objectSize > 0 && objectSize >= fileWriter.getSize()) {
                 fileWriter.flush();
-            else if (objectCount > 0 && objectCount >= fileWriter.getWrittenCount())
+            } else if (objectCount > 0 && objectCount >= fileWriter.getWrittenCount()) {
                 fileWriter.flush();
+            }
         }
     }
 

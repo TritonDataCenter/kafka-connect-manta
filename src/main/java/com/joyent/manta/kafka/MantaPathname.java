@@ -1,14 +1,14 @@
 package com.joyent.manta.kafka;
 
 import com.joyent.manta.config.ConfigContext;
-import com.joyent.manta.config.EnvVarConfigContext;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,19 +19,20 @@ public class MantaPathname {
     private SinkRecord record;
     private ConfigContext context;
 
-    public MantaPathname(ConfigContext context, String format, SinkRecord record) {
+    public MantaPathname(final ConfigContext context, final String format, final SinkRecord record) {
         this.format = format;
         this.context = context;
         this.record = record;
     }
 
-    private int eatUp(String s, int startPos, char ch) {
+    private int eatUp(final String s, final int startPos, final char ch) {
         int ate = 0;
         for (int i = startPos; i < s.length(); i++) {
-            if (s.charAt(i) == ch)
+            if (s.charAt(i) == ch) {
                 ate++;
-            else
+            } else {
                 break;
+            }
         }
         return ate;
     }
@@ -41,18 +42,19 @@ public class MantaPathname {
         return p.getParent().toString();
     }
 
-    String toString(DateTime dt) {
+    String toString(final DateTime dt) {
         if (formatter == null) {
             formatter = createFormatBuilder();
         }
         String p = dt.toString(formatter);
 
-        if (p.startsWith("~~/"))
+        if (p.startsWith("~~/")) {
             return Paths.get(context.getMantaHomeDirectory(), p.substring(3)).toString();
-        else if (p.startsWith("/"))
+        } else if (p.startsWith("/")) {
             return p;
-        else
+        } else {
             return Paths.get(context.getMantaHomeDirectory(), p).toString();
+        }
     }
 
     @Override
@@ -72,10 +74,11 @@ public class MantaPathname {
 
             char fs = format.charAt(i + 1);
             int ate;
-            if (fs != '%')
+            if (fs != '%') {
                 ate = eatUp(format, i + 1, fs);
-            else
+            } else {
                 ate = 1;
+            }
 
             switch (fs) {
                 case '%':
@@ -119,15 +122,14 @@ public class MantaPathname {
         return builder.toFormatter();
     }
 
-    private static OutputStream createOutputStream(String className, String pathname) {
+    private static OutputStream createOutputStream(final String className, final String pathname) {
         try {
             Class<?> clazz = Class.forName(className);
             Constructor<?> ctor = clazz.getConstructor(OutputStream.class);
             OutputStream src = new FileOutputStream(pathname);
             OutputStream os = (OutputStream)ctor.newInstance(src);
             return os;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("error", e);
         }
     }

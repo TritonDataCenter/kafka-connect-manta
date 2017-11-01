@@ -36,7 +36,7 @@ public class MantaSinkConnector extends SinkConnector {
     }
 
     @Override
-    public List<Map<String, String>> taskConfigs(int maxTasks) {
+    public List<Map<String, String>> taskConfigs(final int maxTasks) {
         logger.info("MantaSinkConnector taskConfigs({})", maxTasks);
 
         // TODO: rewrite. may not safe/correct.
@@ -56,13 +56,12 @@ public class MantaSinkConnector extends SinkConnector {
     }
 
     @Override
-    public void start(Map<String, String> props) {
+    public void start(final Map<String, String> props) {
         logger.info("MantaSinkConnector start");
 
         try {
             sinkConfig = new MantaSinkConfig(props);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new ConnectException("configuration error", e);
         }
     }

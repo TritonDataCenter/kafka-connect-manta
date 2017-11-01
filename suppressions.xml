@@ -3,6 +3,7 @@
 <suppressions>
     <!-- ignore suppressions for test classes -->
     <suppress checks="MagicNumber" files="^.*Test\.java$" />
+    <suppress checks="Javadoc" files="."/>
     <suppress checks="JavadocMethod" files="^.*Test\.java$" />
     <suppress checks="JavadocType" files="^.*Test\.java$" />
     <suppress checks="JavadocVariable" files="^.*Test\.java$" />

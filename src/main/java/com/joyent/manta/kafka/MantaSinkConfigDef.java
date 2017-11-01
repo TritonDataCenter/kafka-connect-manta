@@ -1,7 +1,6 @@
 package com.joyent.manta.kafka;
 
 import com.joyent.manta.config.ConfigContext;
-import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 
 import java.util.Properties;
@@ -15,6 +14,7 @@ public class MantaSinkConfigDef extends ConfigDef {
     public static final String HTTP_BUFFER_SIZE = "manta.http.buffersize";
     public static final String HTTPS_PROTOCOL = "manta.https.protocol";
     public static final String MANTA_OBJECT_PATTERN = "manta.object.pattern";
+    public static final String MANTA_OBJECT_PATTERN_DEFAULT = "~~/stor/kafka/%t/%pp/%yyyy-%MM-%dd-%HH-%mm-%ss-%oooooooooooooooooooo.data";
     public static final String MANTA_OBJECT_CLASS = "manta.object.class";
     public static final String MANTA_OBJECT_LIMIT_COUNT = "manta.object.count";
     public static final String MANTA_OBJECT_LIMIT_SIZE = "manta.object.size";
@@ -25,9 +25,9 @@ public class MantaSinkConfigDef extends ConfigDef {
 
     private ConfigDef config;
 
-    public MantaSinkConfigDef(ConfigContext context) {} // TODO: import settings from ConfigContext?
+    public MantaSinkConfigDef(final ConfigContext context) {} // TODO: import settings from ConfigContext?
 
-    public MantaSinkConfigDef(Properties props) {
+    public MantaSinkConfigDef(final Properties props) {
         // super(config, props);
 
     }
@@ -38,7 +38,7 @@ public class MantaSinkConfigDef extends ConfigDef {
         define(KEY_PATH, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Manta Key Location");
 
 
-        define(MANTA_OBJECT_PATTERN, Type.STRING, "~~/stor/kafka/%t/%pp/%yyyy-%MM-%dd-%HH-%mm-%ss-%oooooooooooooooooooo.data", Importance.HIGH, "Manta pathname for kafka topic");
+        define(MANTA_OBJECT_PATTERN, Type.STRING, MANTA_OBJECT_PATTERN_DEFAULT, Importance.HIGH, "Manta pathname for kafka topic");
         define(MANTA_OBJECT_CLASS, Type.STRING, "java.util.zip.GZIPOutputStream", Importance.HIGH, "Type of stream");
         define(MANTA_URL, Type.STRING, "https://us-east.manta.joyent.com", Importance.HIGH, "Manta service endpoint");
 
