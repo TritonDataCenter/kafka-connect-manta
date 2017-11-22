@@ -1,0 +1,16 @@
+{
+    "name": "manta-sink",
+    "config": {
+        "connector.class": "MantaSink",
+        "tasks.max": 1,
+        "topics": "test",
+        "manta.object.pattern": "~~/stor/kafka/%t/%pp/%yyyy-%MM-%dd-%HH-%mm-%ss-%oooooooooooooooooooo.msg.gz",
+        "manta.object.class": "java.util.zip.GZIPOutputStream",
+        "manta.failure": "/tmp/manta.failure",
+        "manta.url": "https://us-east.manta.joyent.com",
+        "manta.key_path": "YOUR-HOME-DIRECTORY/.ssh/id_rsa",
+        "manta.key_id": "SHA256:XXXXXXX".
+        "manta.user": "TRITON-ACCOUNT-NAME"
+    }
+}
+    
