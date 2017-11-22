@@ -123,8 +123,8 @@ public class MantaWriter {
         for (SinkRecord rec: records) {
             openLocalChunkIfNotExist(rec);
 
-            fileWriter.write(String.format("%s[%d:%10d]: %s",
-                                           rec.topic(), rec.kafkaPartition(), rec.kafkaOffset(), String.valueOf(rec.value())));
+            // fileWriter.write(String.format("%s[%d:%10d]: %s", rec.topic(), rec.kafkaPartition(), rec.kafkaOffset(), String.valueOf(rec.value())));
+            fileWriter.write(String.format("%s", String.valueOf(rec.value())));
 
             // TODO: if the size of the out is too much, we need to flush manually.
             if (objectSize > 0 && objectSize >= fileWriter.getSize()) {
