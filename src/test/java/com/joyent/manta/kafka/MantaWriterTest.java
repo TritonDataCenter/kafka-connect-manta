@@ -1,8 +1,10 @@
 package com.joyent.manta.kafka;
 
 import com.joyent.manta.client.MantaClient;
+import com.joyent.manta.client.MantaMetadata;
 import com.joyent.manta.client.MantaObjectResponse;
 import com.joyent.manta.config.ConfigContext;
+import com.joyent.manta.http.MantaHttpHeaders;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.assertj.core.util.Files;
 import org.junit.After;
@@ -149,19 +151,11 @@ public class MantaWriterTest {
 
     @Test
     public void ensure_closeWriterCalled_On_MantaPut_Exception() throws IOException {
-        when(manta.put(anyString(), any(InputStream.class), anyLong(), any(), any())).thenThrow(IOException.class);
+        when(manta.put(anyString(), any(InputStream.class), anyLong(),
+                any(MantaHttpHeaders.class), any(MantaMetadata.class)))
+                .thenThrow(new IOException("Mock IOException"));
 
-        try {
-            mantaWriter.put(manyRecords);
-            mantaWriter.put(oneRecord);
-            when(localObjectWriter.getWrittenCount()).thenReturn(
-                    Long.valueOf(manyRecords.size() + oneRecord.size()));
-
-            mantaWriter.flush();
-        }
-        catch (IOException e) {
-            ;
-        }
+        putRecordsToMock();
 
         verify(inputStream, atLeast(1)).close();
         verify(localObjectWriter, atLeast(1)).close();
@@ -172,6 +166,13 @@ public class MantaWriterTest {
     public void ensure_closeWriterCalled_On_MantaPutDirectory_Exception() throws IOException {
         doThrow(IOException.class).when(manta).putDirectory(anyString(), Matchers.anyBoolean());
 
+        putRecordsToMock();
+
+        verify(localObjectWriter, atLeast(1)).close();
+        verify(localObjectWriter, atLeast(1)).delete();
+    }
+
+    private void putRecordsToMock() {
         try {
             mantaWriter.put(manyRecords);
             mantaWriter.put(oneRecord);
@@ -181,10 +182,7 @@ public class MantaWriterTest {
             mantaWriter.flush();
         }
         catch (IOException e) {
-            ;
+            // Do nothing because this is expected
         }
-
-        verify(localObjectWriter, atLeast(1)).close();
-        verify(localObjectWriter, atLeast(1)).delete();
     }
 }
