@@ -2,36 +2,33 @@ package com.joyent.manta.kafka;
 
 import com.joyent.manta.config.ConfigContext;
 import org.apache.kafka.connect.sink.SinkRecord;
-import org.assertj.core.api.Condition;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.nio.file.Paths;
+import java.time.DateTimeException;
+import java.time.ZonedDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MantaPathnameTest {
-
-    private MantaPathname mantaPathname;
+    private static final String MANTA_HOME_DIRECTORY = "/USER-HOME";
+    private static final ZonedDateTime TEST_TIME = ZonedDateTime.parse("2017-11-08T21:05:07.793Z");
+    private static final int KAFKA_PARTITION = 1234;
+    private static final long KAFKA_OFFSET = 4321;
+    private static final String KAFKA_TOPIC = "TOPIC";
 
     @Mock
     private ConfigContext context;
 
     @Mock
     private SinkRecord sinkRecord;
-
-    private static String MANTA_HOME_DIRECTORY = "/USER-HOME";
-
-    private static int KAFKA_PARTITION = 1234;
-    private static long KAFKA_OFFSET = 4321;
-    private static String KAFKA_TOPIC = "TOPIC";
 
     @Before
     public void setUp() {
@@ -71,62 +68,51 @@ public class MantaPathnameTest {
 
     @Test
     public void verify_format_escaping_escapingChar() {
-        MantaPathname path = new MantaPathname(context, "~/%%%%%%-POSTFIX", sinkRecord);
-
-        assertThat(path.toString()).endsWith("/%%%-POSTFIX");
+        assertPathLastSegmentEquals("~/%%%%%%-POSTFIX", "%%%-POSTFIX");
     }
 
     @Test
-    public void verify_format_dateTime_year() {
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        MantaPathname path = new MantaPathname(context, "~~/%yy", sinkRecord);
+    public void verify_format_dateTime_four_digit_year() {
+        assertPathLastSegmentEquals("~~/%yyyy", "2017");
+    }
 
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("yy");
-        assertThat(path.toString(now)).endsWith(now.toString(formatter));
+    @Test(expected = DateTimeException.class)
+    public void verify_format_dateTime_two_digit_year_doesnt_work() {
+        assertPathLastSegmentEquals("~~/%yy", "17");
     }
 
     @Test
     public void verify_format_dateTime_monthOfYear() {
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        MantaPathname path = new MantaPathname(context, "~~/%MM", sinkRecord);
-
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("MM");
-        assertThat(path.toString(now)).endsWith(now.toString(formatter));
+        assertPathLastSegmentEquals("~~/%MM", "11");
     }
 
     @Test
     public void verify_format_dateTime_dayOfMonth() {
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        MantaPathname path = new MantaPathname(context, "~~/%ddd", sinkRecord);
-
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("ddd");
-        assertThat(path.toString(now)).endsWith(now.toString(formatter));
+        assertPathLastSegmentEquals("~~/%dd", "08");
     }
 
     @Test
     public void verify_format_dateTime_hourOfDay() {
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        MantaPathname path = new MantaPathname(context, "~~/%HH", sinkRecord);
-
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("HH");
-        assertThat(path.toString(now)).endsWith(now.toString(formatter));
+        assertPathLastSegmentEquals("~~/%HH", "21");
     }
 
     @Test
     public void verify_format_dateTime_minuteOfHour() {
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        MantaPathname path = new MantaPathname(context, "~~/%mm", sinkRecord);
-
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("mm");
-        assertThat(path.toString(now)).endsWith(now.toString(formatter));
+        assertPathLastSegmentEquals("~~/%mm", "05");
     }
 
     @Test
     public void verify_format_dateTime_secondOfMinute() {
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        MantaPathname path = new MantaPathname(context, "~~/%ss", sinkRecord);
+        assertPathLastSegmentEquals("~~/%ss", "07");
+    }
 
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("ss");
-        assertThat(path.toString(now)).endsWith(now.toString(formatter));
+    private void assertPathLastSegmentEquals(final String pathLiteral, final String expected) {
+        MantaPathname pathname = new MantaPathname(context, pathLiteral, sinkRecord);
+        String mantaPath = pathname.toString(TEST_TIME);
+        String lastSegment = Paths.get(mantaPath).getFileName().toString();
+
+        assertEquals("Last segment in Manta path [" + mantaPath + "] "
+                + "did not equal the expected value",
+                expected, lastSegment);
     }
 }

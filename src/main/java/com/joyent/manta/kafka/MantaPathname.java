@@ -2,16 +2,17 @@ package com.joyent.manta.kafka;
 
 import com.joyent.manta.config.ConfigContext;
 import org.apache.kafka.connect.sink.SinkRecord;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.DateTimeFormatterBuilder;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 
 public class MantaPathname {
     private DateTimeFormatter formatter;
@@ -42,11 +43,11 @@ public class MantaPathname {
         return p.getParent().toString();
     }
 
-    String toString(final DateTime dt) {
+    String toString(final ZonedDateTime dt) {
         if (formatter == null) {
             formatter = createFormatBuilder();
         }
-        String p = dt.toString(formatter);
+        String p = dt.format(formatter);
 
         if (p.startsWith("~~/")) {
             return Paths.get(context.getMantaHomeDirectory(), p.substring(3)).toString();
@@ -59,7 +60,7 @@ public class MantaPathname {
 
     @Override
     public String toString() {
-        return toString(DateTime.now(DateTimeZone.UTC));
+        return toString(ZonedDateTime.now(ZoneOffset.UTC));
     }
 
     private DateTimeFormatter createFormatBuilder() {
@@ -94,25 +95,25 @@ public class MantaPathname {
                     builder.appendLiteral(record.topic());
                     break;
                 case 'y':
-                    builder.appendYear(ate, ate);
+                    builder.appendValue(ChronoField.YEAR, ate);
                     break;
                 case 'D':
-                    builder.appendDayOfYear(ate);
+                    builder.appendValue(ChronoField.DAY_OF_YEAR, ate);
                     break;
                 case 'M':
-                    builder.appendMonthOfYear(ate);
+                    builder.appendValue(ChronoField.MONTH_OF_YEAR, ate);
                     break;
                 case 'd':
-                    builder.appendDayOfMonth(ate);
+                    builder.appendValue(ChronoField.DAY_OF_MONTH, ate);
                     break;
                 case 'H':
-                    builder.appendHourOfDay(ate);
+                    builder.appendValue(ChronoField.HOUR_OF_DAY, ate);
                     break;
                 case 'm':
-                    builder.appendMinuteOfHour(ate);
+                    builder.appendValue(ChronoField.MINUTE_OF_HOUR, ate);
                     break;
                 case 's':
-                    builder.appendSecondOfMinute(ate);
+                    builder.appendValue(ChronoField.SECOND_OF_MINUTE, ate);
                     break;
                 default:
                     break;
