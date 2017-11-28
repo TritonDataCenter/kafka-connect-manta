@@ -30,17 +30,12 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MantaWriterTest {
+    private static final String MANTA_OBJECT_DIRECTORY = "Manta Obj Directory";
+    private static final String MANTA_OBJECT_PATHNAME = "Manta Obj Pathname";
 
-    private static String MANTA_OBJECT_PATTERN = "OBJECT-PATHNAME-PATTERN";
-    private static String MANTA_OBJECT_CLASS = "OBJECT-CLASS";
-
-    private static String MANTA_OBJECT_DIRECTORY = "Manta Obj Directory";
-    private static String MANTA_OBJECT_PATHNAME = "Manta Obj Pathname";
-
-    private static String MANTA_RESP_STRING = "MANTA Response String";
-    private static String KAFKA_TOPIC_STRING = "TEST TOPIC";
-    private static int KAFKA_PARTITION = 1;
-
+    private static final String MANTA_RESP_STRING = "MANTA Response String";
+    private static final String KAFKA_TOPIC_STRING = "TEST TOPIC";
+    private static final int KAFKA_PARTITION = 1;
 
     @Mock
     private MantaClient manta;
@@ -82,23 +77,29 @@ public class MantaWriterTest {
         manyRecords = new ArrayList<>();
         for (int i = 0; i < 1234; i++) {
             String value = String.format("message#%d", i);
-            manyRecords.add(new SinkRecord(KAFKA_TOPIC_STRING, KAFKA_PARTITION, null, null, null, value, i));
+            manyRecords.add(new SinkRecord(KAFKA_TOPIC_STRING, KAFKA_PARTITION,
+                    null, null, null, value, i));
         }
 
         oneRecord = new ArrayList<>();
-        oneRecord.add(new SinkRecord(KAFKA_TOPIC_STRING, KAFKA_PARTITION, null, null, null, String.format("message#1"), 0));
+        oneRecord.add(new SinkRecord(KAFKA_TOPIC_STRING, KAFKA_PARTITION,
+                null, null, null,
+                String.format("message#1"), 0));
 
         zeroRecord = new ArrayList<>();
 
         mantaWriter = new MantaWriter(manta, context, factory);
 
-        when(factory.getObject(eq(MantaPathname.class), any(MantaPathname.class))).thenReturn(pathname);
-        //when(factory.getObject(Matchers.any(MantaPathname.class))).thenReturn(pathname);
-        when(factory.getObject(eq(LocalObjectWriter.class), any(LocalObjectWriter.class))).thenReturn(localObjectWriter);
-        when(factory.getObject(eq(BufferedInputStream.class), any(BufferedInputStream.class))).thenReturn(inputStream);
+        when(factory.getObject(eq(MantaPathname.class),
+                any(MantaPathname.class))).thenReturn(pathname);
+        when(factory.getObject(eq(LocalObjectWriter.class),
+                any(LocalObjectWriter.class))).thenReturn(localObjectWriter);
+        when(factory.getObject(eq(BufferedInputStream.class),
+                any(BufferedInputStream.class))).thenReturn(inputStream);
 
         doNothing().when(manta).putDirectory(anyString(), Matchers.anyBoolean());
-        when(manta.put(anyString(), any(InputStream.class), anyLong(), any(), any())).thenReturn(response);
+        when(manta.put(anyString(), any(InputStream.class), anyLong(), any(),
+                any())).thenReturn(response);
         when(manta.getContext()).thenReturn(mantaContext);
         when(mantaContext.getMantaHomeDirectory()).thenReturn("/userhome");
 
@@ -124,11 +125,13 @@ public class MantaWriterTest {
         mantaWriter.put(zeroRecord);
         mantaWriter.put(zeroRecord);
 
-        when(localObjectWriter.getWrittenCount()).thenReturn(Long.valueOf(zeroRecord.size() + zeroRecord.size() + zeroRecord.size()));
+        when(localObjectWriter.getWrittenCount()).thenReturn(
+                Long.valueOf(zeroRecord.size() + zeroRecord.size() + zeroRecord.size()));
 
         mantaWriter.flush();
 
-        verify(manta, times(0)).put(anyString(), any(InputStream.class), anyLong(), any(), any());
+        verify(manta, times(0)).put(anyString(),
+                any(InputStream.class), anyLong(), any(), any());
     }
 
     @Test
@@ -136,10 +139,12 @@ public class MantaWriterTest {
         mantaWriter.put(manyRecords);
         mantaWriter.put(oneRecord);
 
-        when(localObjectWriter.getWrittenCount()).thenReturn(Long.valueOf(manyRecords.size() + oneRecord.size()));
+        when(localObjectWriter.getWrittenCount()).thenReturn(
+                Long.valueOf(manyRecords.size() + oneRecord.size()));
         mantaWriter.flush();
 
-        verify(manta, times(1)).put(anyString(), any(InputStream.class), anyLong(), any(), any());
+        verify(manta, times(1)).put(anyString(),
+                any(InputStream.class), anyLong(), any(), any());
     }
 
     @Test
@@ -149,7 +154,8 @@ public class MantaWriterTest {
         try {
             mantaWriter.put(manyRecords);
             mantaWriter.put(oneRecord);
-            when(localObjectWriter.getWrittenCount()).thenReturn(Long.valueOf(manyRecords.size() + oneRecord.size()));
+            when(localObjectWriter.getWrittenCount()).thenReturn(
+                    Long.valueOf(manyRecords.size() + oneRecord.size()));
 
             mantaWriter.flush();
         }
@@ -169,7 +175,8 @@ public class MantaWriterTest {
         try {
             mantaWriter.put(manyRecords);
             mantaWriter.put(oneRecord);
-            when(localObjectWriter.getWrittenCount()).thenReturn(Long.valueOf(manyRecords.size() + oneRecord.size()));
+            when(localObjectWriter.getWrittenCount()).thenReturn(
+                    Long.valueOf(manyRecords.size() + oneRecord.size()));
 
             mantaWriter.flush();
         }
