@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class MantaSinkTask extends SinkTask {
-    private static Logger logger = LoggerFactory.getLogger(MantaSinkTask.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MantaSinkTask.class);
 
     private MantaClient manta;
     private MantaWriter writer;
@@ -32,20 +32,20 @@ public class MantaSinkTask extends SinkTask {
 
     @Override
     public void stop() {
-        logger.info("MantaSinkTask stop");
+        LOG.info("MantaSinkTask stop");
 
         // TODO: Close Manta connection?
     }
 
     @Override
     public void start(final Map<String, String> props) {
-        logger.info("MantaSinkTask start:");
+        LOG.info("MantaSinkTask start:");
 
         Properties mantaProps = new Properties();
         mantaProps.putAll(props);
 
         for (Map.Entry<String, String> entry: props.entrySet()) {
-            logger.info("  props[{}]={}", entry.getKey(), entry.getValue());
+            LOG.info("  props[{}]={}", entry.getKey(), entry.getValue());
         }
         // TODO: Open Manta connection?
         // TODO: Create Manta directory
@@ -61,7 +61,7 @@ public class MantaSinkTask extends SinkTask {
 
     @Override
     public void put(final Collection<SinkRecord> records) {
-        logger.info("MantaSinkTask put #records={}", records.size());
+        LOG.info("MantaSinkTask put #records={}", records.size());
 
         try {
             writer.put(records);

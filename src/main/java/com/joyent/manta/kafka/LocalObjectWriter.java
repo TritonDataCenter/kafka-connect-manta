@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class LocalObjectWriter implements AutoCloseable, Closeable {
-    private static Logger log = LoggerFactory.getLogger(LocalObjectWriter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LocalObjectWriter.class);
 
     private File file;
     private long writtenBytes;
@@ -36,7 +36,7 @@ public class LocalObjectWriter implements AutoCloseable, Closeable {
             OutputStream src = new FileOutputStream(newFile);
             return (OutputStream) ctor.newInstance(src);
         } catch (Exception e) {
-            log.warn(String.format("Creating instance of %s failed, using BufferredOutputStream.", className), e);
+            LOG.warn(String.format("Creating instance of %s failed, using BufferredOutputStream.", className), e);
             return new BufferedOutputStream(new FileOutputStream(newFile));
         }
     }

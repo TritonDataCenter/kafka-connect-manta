@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MantaSinkConnector extends SinkConnector {
-    private static Logger logger = LoggerFactory.getLogger(MantaSinkConnector.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MantaSinkConnector.class);
 
     private static final String VERSION = "alpha";
 
@@ -37,7 +37,7 @@ public class MantaSinkConnector extends SinkConnector {
 
     @Override
     public List<Map<String, String>> taskConfigs(final int maxTasks) {
-        logger.info("MantaSinkConnector taskConfigs({})", maxTasks);
+        LOG.info("MantaSinkConnector taskConfigs({})", maxTasks);
 
         // TODO: rewrite. may not safe/correct.
         ArrayList<Map<String, String>> l = new ArrayList<>();
@@ -52,12 +52,12 @@ public class MantaSinkConnector extends SinkConnector {
 
     @Override
     public void stop() {
-        logger.info("MantaSinkConnector stop");
+        LOG.info("MantaSinkConnector stop");
     }
 
     @Override
     public void start(final Map<String, String> props) {
-        logger.info("MantaSinkConnector start");
+        LOG.info("MantaSinkConnector start");
 
         try {
             sinkConfig = new MantaSinkConfig(props);

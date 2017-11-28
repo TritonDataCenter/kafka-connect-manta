@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.Map;
 
 public class MantaWriter {
-    private static Logger log = LoggerFactory.getLogger(MantaWriter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MantaWriter.class);
 
     // out, outPath, and mantaPath will be determined on the first call to put()
     private ObjectFactory factory;
@@ -56,7 +56,7 @@ public class MantaWriter {
             fileWriter.delete();
             fileWriter.close();
         } catch (IOException e) {
-            log.warn("closing fileWriter failed", e);
+            LOG.warn("closing fileWriter failed", e);
         } finally {
             fileWriter = null;
         }
@@ -73,7 +73,7 @@ public class MantaWriter {
             mantaPathname = factory.getObject(MantaPathname.class,
                                               new MantaPathname(manta.getContext(), objectPattern, firstRecord));
 
-            log.info("TEMP[#%d]: {}", firstRecord.kafkaPartition(), fileWriter.getPath());
+            LOG.info("TEMP[#%d]: {}", firstRecord.kafkaPartition(), fileWriter.getPath());
         } catch (Exception e) {
             this.firstRecord = null;
 
@@ -96,14 +96,14 @@ public class MantaWriter {
                 }
 
                 MantaObjectResponse resp = manta.put(mantaPathname.toString(), is, fileWriter.getSize(), null, null);
-                log.info("manta resp: {}", resp);
+                LOG.info("manta resp: {}", resp);
             }
         } catch (IOException e) {
             // ignored
-            log.error(String.format("IOException on MantaClient: %s", e.getMessage()), e);
+            LOG.error(String.format("IOException on MantaClient: %s", e.getMessage()), e);
             throw e;
         } catch (Exception e) {
-            log.error("uncatched exception", e);
+            LOG.error("uncatched exception", e);
             throw e;
         } finally {
             firstRecord = null;
