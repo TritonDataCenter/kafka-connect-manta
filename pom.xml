@@ -19,6 +19,12 @@
 
     <developers>
         <developer>
+            <name>Seong-Kook Shin</name>
+            <email>seong-kook.shin@joyent.com</email>
+            <organization>Joyent</organization>
+            <organizationUrl>joyent.com</organizationUrl>
+        </developer>
+        <developer>
             <name>Elijah Zupancic</name>
             <email>elijah@zupancic.name</email>
             <organization>Joyent</organization>
