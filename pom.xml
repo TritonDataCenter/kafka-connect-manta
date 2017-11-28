@@ -62,7 +62,7 @@
 
         <!-- Dependency versions -->
         <dependency.checkstyle.version>7.5.1</dependency.checkstyle.version>
-        <dependency.java-manta.version>3.1.3</dependency.java-manta.version>
+        <dependency.java-manta.version>3.1.6</dependency.java-manta.version>
         <dependency.kafka.version>0.11.0.1</dependency.kafka.version>
         <dependency.slf4j.version>1.7.25</dependency.slf4j.version>
         <!-- Test dependency versions -->
