@@ -17,12 +17,9 @@ public class MantaSinkConnector extends SinkConnector {
 
     private static final String VERSION = "alpha";
 
-    // private Map<String, String> taskConfig;
     private MantaSinkConfig sinkConfig;
 
     public MantaSinkConnector() {
-        // taskConfig = new HashMap<>();  // TODO: what config is needed??
-        // taskConfig.put("TASK-CONFIG-KEY", "TASK-CONFIG-VALUE");
     }
 
     @Override
@@ -39,7 +36,6 @@ public class MantaSinkConnector extends SinkConnector {
     public List<Map<String, String>> taskConfigs(final int maxTasks) {
         LOG.info("MantaSinkConnector taskConfigs({})", maxTasks);
 
-        // TODO: rewrite. may not safe/correct.
         ArrayList<Map<String, String>> l = new ArrayList<>();
 
         for (int i = 0; i < maxTasks; i++) {

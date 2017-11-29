@@ -15,20 +15,30 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Map;
 
+
+/**
+ * This class exposes two public methods, <code>put</code> and <code>flush</code>, to manage the temporary file for the
+ * Kafka message aggregation, and post it to Manta if (1) the file size is sufficiently large, or (2) the number of
+ * messages is enough to publish.
+ */
 public class MantaWriter {
     private static final Logger LOG = LoggerFactory.getLogger(MantaWriter.class);
 
-    // out, outPath, and mantaPath will be determined on the first call to put()
     private ObjectFactory factory;
     private LocalObjectWriter fileWriter; // TODO: we may need a Map[Topic, LocalObjectWriter].
-    private MantaPathname mantaPathname;
+    private MantaPathname mantaPathname;  // Manta pathname, will be used for when fileWriter is posted.
 
     private String objectPattern;
     private String objectClass;
     private MantaClient manta;
-    private SinkRecord firstRecord;
-    private long objectCount;
-    private long objectSize;
+
+    private SinkRecord firstRecord;   // firstRecord serves two purpose.  If this is null, then MantaWriter will
+                                      // consider that as a signal for initializing internal states.  If not, it is
+                                      // used as a source of MantaPathname parameters.
+
+    private long objectCount;         // number of records in the current temporary file
+    private long objectSize;          // the byte size of the temporary file.
+
     private String mantaShouldFail;
 
     public MantaWriter(final MantaClient mantaClient, final Map<String, String> context) {
@@ -67,7 +77,8 @@ public class MantaWriter {
             return;
         }
 
-        try {
+        try { // Generate MantaPathname using <code>firstRecord</code>
+
             this.firstRecord = firstRecord;
             fileWriter = factory.getObject(LocalObjectWriter.class, new LocalObjectWriter(objectClass));
             mantaPathname = factory.getObject(MantaPathname.class,
@@ -82,6 +93,7 @@ public class MantaWriter {
         }
     }
 
+    // Send the records in the temporary file to Manta, then delete the temporary file.
     void closeLocalChunk() throws IOException {
         try {
             fileWriter.close();
@@ -90,7 +102,6 @@ public class MantaWriter {
 
             try (InputStream is = factory.getObject(BufferedInputStream.class,
                                                     new BufferedInputStream(new FileInputStream(fileWriter.getPath())))) {
-                // MantaObjectResponse resp = manta.put(mantaPathname.toString(), fileWriter.getPath());
                 if (!mantaShouldFail.isEmpty() && Files.exists(Paths.get(mantaShouldFail))) {
                     throw new IOException("Simulating Manta client exception.");
                 }
@@ -112,7 +123,10 @@ public class MantaWriter {
     }
 
     public void flush() throws IOException {
+        // Called by Kafka Connect occasionally to flush the records that have been <code>put</code>.
+
         if (fileWriter == null || fileWriter.getWrittenCount() == 0) {
+            // This method is called even if there was no <code>put</code> call.
             return;
         }
 
@@ -120,13 +134,16 @@ public class MantaWriter {
     }
 
     public void put(final Collection<SinkRecord> records) throws IOException {
+        // <code>SinkTask</code> does not provide a start method, so this method should create the temporary file if not
+        // exist, and append the <code>records</code> to the file, and if the temporary file is sufficiently large, then
+        // need to flush manually.
+
         for (SinkRecord rec: records) {
             openLocalChunkIfNotExist(rec);
 
-            // fileWriter.write(String.format("%s[%d:%10d]: %s", rec.topic(), rec.kafkaPartition(), rec.kafkaOffset(), String.valueOf(rec.value())));
             fileWriter.write(String.format("%s", String.valueOf(rec.value())));
 
-            // TODO: if the size of the out is too much, we need to flush manually.
+            // If the size of the file is too large, we need to flush manually.
             if (objectSize > 0 && objectSize >= fileWriter.getSize()) {
                 fileWriter.flush();
             } else if (objectCount > 0 && objectCount >= fileWriter.getWrittenCount()) {

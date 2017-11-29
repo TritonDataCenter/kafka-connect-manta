@@ -33,8 +33,6 @@ public class MantaSinkTask extends SinkTask {
     @Override
     public void stop() {
         LOG.info("MantaSinkTask stop");
-
-        // TODO: Close Manta connection?
     }
 
     @Override
@@ -47,8 +45,6 @@ public class MantaSinkTask extends SinkTask {
         for (Map.Entry<String, String> entry: props.entrySet()) {
             LOG.info("  props[{}]={}", entry.getKey(), entry.getValue());
         }
-        // TODO: Open Manta connection?
-        // TODO: Create Manta directory
 
         ConfigContext config = new SystemSettingsConfigContext(false, mantaProps);
         try {
