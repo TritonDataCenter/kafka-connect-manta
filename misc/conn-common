@@ -1,0 +1,46 @@
+# -*-sh-*-
+
+CONNECT_ENDPOINT=${CONNECT_ENDPOINT:-http://localhost:8083}
+
+error() {
+    local ecode=$1
+    shift
+    echo "error: $*" 1>&2
+    if [ "$ecode" -ne 0 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+conn-create() {
+    # Usage: conn-create CONNECTOR-CONFIG
+    [ $# -ne 1 ] && error 1 "wrong number of argument(s)" && return 1
+    [ ! -f "$1" ] && error 1 "file not found: $1" && return 1
+    
+    curl -s -d@$1 --url "$CONNECT_ENDPOINT/connectors" -H 'Content-Type: application/json' | json
+}
+
+conn-list() {
+    curl -s "$CONNECT_ENDPOINT/connectors" | json
+}
+
+conn-info() {
+    [ $# -ne 1 ] && error 1 "wrong number of argument(s)" && return 1
+    local name="$1"
+    echo "# INFO"
+    curl -s "$CONNECT_ENDPOINT/connectors/$1" | json
+    echo "# CONFIG"
+    curl -s "$CONNECT_ENDPOINT/connectors/$1/config" | json
+    echo "# STATUS"
+    curl -s "$CONNECT_ENDPOINT/connectors/$1/status" | json
+    echo "# TASKS"
+    curl -s "$CONNECT_ENDPOINT/connectors/$1/tasks" | json
+}
+
+conn-delete() {
+    [ $# -ne 1 ] && error 1 "wrong number of argument(s)" && return 1
+    curl -s -X DELETE "$CONNECT_ENDPOINT/connectors/$1" | json
+}
+
+

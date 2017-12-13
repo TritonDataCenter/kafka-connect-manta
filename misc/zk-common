@@ -1,0 +1,46 @@
+# -*-sh-*-
+
+ZK_PREFIX=/opt/zookeeper
+ZK_DATA=/var/lib/zookeeper
+ZK_VER="3.4.10"
+
+# The download URL will be constructed by
+# http://MIRROR-SITE/.../kafka/${KAFKA_VER}/kafka${KAFKA_POSTFIX}-${KAFKA_VER}.tgz
+
+KAFKA_VER="0.11.0.1"
+KAFKA_POSTFIX="_2.11"
+KAFKA_PREFIX=/opt/kafka
+
+
+ZK_ROOT="$ZK_PREFIX/current"
+KAFKA_ROOT="$KAFKA_PREFIX/current"
+
+export ZK_PREFIX ZK_DATA ZK_VER ZK_ROOT
+
+TSESSION=zk
+
+W_UPDATOR=${TSESSION}:0
+W_WGET=${TSESSION}:1
+W_ZK=${TSESSION}:2
+
+W_KAFKA=${TSESSION}:2
+
+HOST_NAME=$(hostname | sed -e 's/-.*$//g')
+
+wait_for_file() {
+    # Usage file message
+    local lck="$1" msg="$2"
+    
+    echo -n "$HOST_NAME: $2..." 1>&2
+    while [ ! -f "$lck" ]; do
+        sleep 1
+    done
+    rm -f "$lck"
+    echo "done" 1>&2
+}
+
+
+log() {
+    echo "$HOST_NAME: $*" 1>&2
+}
+

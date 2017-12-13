@@ -1,0 +1,3 @@
+#!/bin/bash
+
+parallel 'cat zk-common kafka-node-stop.sh | ssh {} bash -s' ::: "$@"

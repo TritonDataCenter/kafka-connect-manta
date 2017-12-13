@@ -1,0 +1,3 @@
+#!/bin/bash
+
+parallel 'cat zk-common zk-node-start.sh | ssh {} bash -s' ::: "$@"
