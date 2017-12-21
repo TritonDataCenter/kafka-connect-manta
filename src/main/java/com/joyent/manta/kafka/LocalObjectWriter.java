@@ -25,7 +25,8 @@ import java.nio.file.Files;
  * the stream class name in the constructor.</p>
  */
 public class LocalObjectWriter implements AutoCloseable, Closeable {
-    private static final Logger LOG = LoggerFactory.getLogger(LocalObjectWriter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(
+            LocalObjectWriter.class);
 
     private final File file;
     private long writtenBytes;
@@ -51,18 +52,22 @@ public class LocalObjectWriter implements AutoCloseable, Closeable {
         this.file = File.createTempFile("kafka-manta-sink", null);
         final OutputStream innerStream = createStream(className, file);
         this.countingOutputStream = new CountingOutputStream(innerStream);
-        final OutputStreamWriter outputStreamWriter = new OutputStreamWriter(innerStream, StandardCharsets.UTF_8);
+        final OutputStreamWriter outputStreamWriter = new OutputStreamWriter(
+                innerStream, StandardCharsets.UTF_8);
         this.writer = new PrintWriter(outputStreamWriter, false);
     }
 
-    private OutputStream createStream(final String className, final File newFile) throws FileNotFoundException {
+    private OutputStream createStream(final String className, final File newFile)
+            throws FileNotFoundException {
         try {
             Class<?> clazz = Class.forName(className);
             Constructor<?> ctor = clazz.getConstructor(OutputStream.class);
             OutputStream src = new FileOutputStream(newFile);
             return (OutputStream) ctor.newInstance(src);
         } catch (Exception e) {
-            LOG.warn(String.format("Creating instance of %s failed, using BufferredOutputStream.", className), e);
+            String msg = String.format("Creating instance of %s failed, using "
+                    + "BufferredOutputStream.", className);
+            LOG.warn(msg, e);
             return new BufferedOutputStream(new FileOutputStream(newFile));
         }
     }

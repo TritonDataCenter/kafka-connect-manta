@@ -55,7 +55,8 @@ public class MantaPathname {
      *               documentation of this class for more.
      * @param record the first Kafka <code>SinkRecord</code> for this instance.
      */
-    public MantaPathname(final ConfigContext context, final String format, final SinkRecord record) {
+    public MantaPathname(final ConfigContext context, final String format,
+                         final SinkRecord record) {
         this.format = format;
         this.context = context;
         this.record = record;
@@ -84,8 +85,9 @@ public class MantaPathname {
     }
 
     /*
-     * By convention, Manta command-line tool uses '~~/' prefix to refer the user's home directory.
-     * This function will substitute '~~/' prefix in the MantaPathname to mimic that behavior.
+     * By convention, Manta command-line tool uses '~~/' prefix to refer the
+     * user's home directory. This function will substitute '~~/' prefix in the
+     * MantaPathname to mimic that behavior.
      */
     String toString(final ZonedDateTime dt) {
         if (formatter == null) {
@@ -135,10 +137,12 @@ public class MantaPathname {
                     builder.appendLiteral('%');
                     break;
                 case 'p':
-                    builder.appendLiteral(String.format(String.format("%%0%dd", ate), record.kafkaPartition()));
+                    builder.appendLiteral(String.format(String.format("%%0%dd", ate),
+                            record.kafkaPartition()));
                     break;
                 case 'o':
-                    builder.appendLiteral(String.format(String.format("%%0%dd", ate), record.kafkaOffset()));
+                    builder.appendLiteral(String.format(String.format("%%0%dd", ate),
+                            record.kafkaOffset()));
                     break;
                 case 't':
                     builder.appendLiteral(record.topic());

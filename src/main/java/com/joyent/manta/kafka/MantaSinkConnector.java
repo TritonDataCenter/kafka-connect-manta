@@ -39,7 +39,8 @@ public class MantaSinkConnector extends SinkConnector {
         ArrayList<Map<String, String>> l = new ArrayList<>();
 
         for (int i = 0; i < maxTasks; i++) {
-            Map<String, String> config = new HashMap<String, String>(sinkConfig.originalsStrings());
+            Map<String, String> config = new HashMap<String, String>(
+                    sinkConfig.originalsStrings());
             l.add(config);
         }
 

@@ -46,7 +46,8 @@ public class MantaSinkTask extends SinkTask {
             LOG.info("  props[{}]={}", entry.getKey(), entry.getValue());
         }
 
-        ConfigContext config = new SystemSettingsConfigContext(false, mantaProps);
+        ConfigContext config = new SystemSettingsConfigContext(
+                false, mantaProps);
         try {
             manta = new MantaClient(config);
             writer = new MantaWriter(manta, props);

@@ -17,43 +17,63 @@ import java.util.Map;
 
 
 /**
- * This class exposes two public methods, <code>put</code> and <code>flush</code>, to manage the temporary file for the
- * Kafka message aggregation, and post it to Manta if (1) the file size is sufficiently large, or (2) the number of
+ * This class exposes two public methods, <code>put</code> and <code>flush</code>,
+ * to manage the temporary file for the Kafka message aggregation, and post it
+ * to Manta if (1) the file size is sufficiently large, or (2) the number of
  * messages is enough to publish.
  */
 public class MantaWriter {
     private static final Logger LOG = LoggerFactory.getLogger(MantaWriter.class);
 
     private ObjectFactory factory;
-    private LocalObjectWriter fileWriter; // TODO: we may need a Map[Topic, LocalObjectWriter].
-    private MantaPathname mantaPathname;  // Manta pathname, will be used for when fileWriter is posted.
+    // TODO: we may need a Map[Topic, LocalObjectWriter].
+    private LocalObjectWriter fileWriter;
+    /**
+     * Manta pathname, will be used for when fileWriter is posted.
+     */
+    private MantaPathname mantaPathname;
 
     private String objectPattern;
     private String objectClass;
     private MantaClient manta;
 
-    private SinkRecord firstRecord;   // firstRecord serves two purpose.  If this is null, then MantaWriter will
-                                      // consider that as a signal for initializing internal states.  If not, it is
-                                      // used as a source of MantaPathname parameters.
+    /**
+     * FirstRecord serves two purposes - If this is null, then MantaWriter will
+     * consider that as a signal for initializing internal states. If not, it is
+     * used as a source of MantaPathname parameters.
+     */
+    private SinkRecord firstRecord;
 
-    private long objectCount;         // number of records in the current temporary file
-    private long objectSize;          // the byte size of the temporary file.
+    /**
+     * The number of records in the current temporary file.
+     */
+    private long objectCount;
+
+    /**
+     * The byte size of the temporary file.
+     */
+    private long objectSize;
 
     private String mantaShouldFail;
 
-    public MantaWriter(final MantaClient mantaClient, final Map<String, String> context) {
+    public MantaWriter(final MantaClient mantaClient,
+                       final Map<String, String> context) {
         this(mantaClient, context, new ObjectFactory());
     }
 
-    public MantaWriter(final MantaClient mantaClient, final Map<String, String> context, final ObjectFactory factory) {
+    public MantaWriter(final MantaClient mantaClient,
+                       final Map<String, String> context,
+                       final ObjectFactory factory) {
         this.factory = factory;
 
         this.manta = mantaClient;
         this.objectPattern = context.get(MantaSinkConfigDef.MANTA_OBJECT_PATTERN);
         this.objectClass = context.get(MantaSinkConfigDef.MANTA_OBJECT_CLASS);
 
-        this.objectCount = Long.parseLong(context.getOrDefault(MantaSinkConfigDef.MANTA_OBJECT_LIMIT_COUNT, "-1"));
-        this.objectSize = Long.parseLong(context.getOrDefault(MantaSinkConfigDef.MANTA_OBJECT_LIMIT_SIZE, "-1"));
+        this.objectCount = Long.parseLong(context.getOrDefault(
+                MantaSinkConfigDef.MANTA_OBJECT_LIMIT_COUNT, "-1"));
+        this.objectSize = Long.parseLong(context.getOrDefault(
+                MantaSinkConfigDef.MANTA_OBJECT_LIMIT_SIZE, "-1"));
         this.mantaShouldFail = context.get(MantaSinkConfigDef.MANTA_SIMULATE_FAILURE);
     }
 
@@ -80,9 +100,11 @@ public class MantaWriter {
         try { // Generate MantaPathname using <code>firstRecord</code>
 
             this.firstRecord = firstRecord;
-            fileWriter = factory.getObject(LocalObjectWriter.class, new LocalObjectWriter(objectClass));
-            mantaPathname = factory.getObject(MantaPathname.class,
-                                              new MantaPathname(manta.getContext(), objectPattern, firstRecord));
+            fileWriter = factory.getObject(LocalObjectWriter.class,
+                    new LocalObjectWriter(objectClass));
+            final MantaPathname pathname = new MantaPathname(manta.getContext(),
+                    objectPattern, firstRecord);
+            mantaPathname = factory.getObject(MantaPathname.class, pathname);
 
             LOG.info("TEMP[#%d]: {}", firstRecord.kafkaPartition(), fileWriter.getPath());
         } catch (Exception e) {
@@ -100,13 +122,16 @@ public class MantaWriter {
 
             manta.putDirectory(mantaPathname.getDirectory(), true);
 
-            try (InputStream is = factory.getObject(BufferedInputStream.class,
-                                                    new BufferedInputStream(new FileInputStream(fileWriter.getPath())))) {
+            try (FileInputStream fs = new FileInputStream(fileWriter.getPath());
+                 BufferedInputStream bs = new BufferedInputStream(fs);
+                 InputStream is = factory.getObject(BufferedInputStream.class, bs)) {
+
                 if (!mantaShouldFail.isEmpty() && Files.exists(Paths.get(mantaShouldFail))) {
                     throw new IOException("Simulating Manta client exception.");
                 }
 
-                MantaObjectResponse resp = manta.put(mantaPathname.toString(), is, fileWriter.getSize(), null, null);
+                MantaObjectResponse resp = manta.put(mantaPathname.toString(),
+                        is, fileWriter.getSize(), null, null);
                 LOG.info("manta resp: {}", resp);
             }
         } catch (IOException e) {
@@ -123,7 +148,8 @@ public class MantaWriter {
     }
 
     public void flush() throws IOException {
-        // Called by Kafka Connect occasionally to flush the records that have been <code>put</code>.
+        // Called by Kafka Connect occasionally to flush the records that have
+        // been <code>put</code>.
 
         if (fileWriter == null || fileWriter.getWrittenCount() == 0) {
             // This method is called even if there was no <code>put</code> call.
@@ -134,9 +160,10 @@ public class MantaWriter {
     }
 
     public void put(final Collection<SinkRecord> records) throws IOException {
-        // <code>SinkTask</code> does not provide a start method, so this method should create the temporary file if not
-        // exist, and append the <code>records</code> to the file, and if the temporary file is sufficiently large, then
-        // need to flush manually.
+        // <code>SinkTask</code> does not provide a start method, so this method
+        // should create the temporary file if not exist, and append the
+        // <code>records</code> to the file, and if the temporary file is
+        // sufficiently large, then need to flush manually.
 
         for (SinkRecord rec: records) {
             openLocalChunkIfNotExist(rec);
@@ -151,5 +178,4 @@ public class MantaWriter {
             }
         }
     }
-
 }

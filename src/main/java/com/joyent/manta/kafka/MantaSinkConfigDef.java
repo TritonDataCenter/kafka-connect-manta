@@ -14,7 +14,8 @@ public class MantaSinkConfigDef extends ConfigDef {
     public static final String HTTP_BUFFER_SIZE = "manta.http.buffersize";
     public static final String HTTPS_PROTOCOL = "manta.https.protocol";
     public static final String MANTA_OBJECT_PATTERN = "manta.object.pattern";
-    public static final String MANTA_OBJECT_PATTERN_DEFAULT = "~~/stor/kafka/%t/%pp/%yyyy-%MM-%dd-%HH-%mm-%ss-%oooooooooooooooooooo.data";
+    public static final String MANTA_OBJECT_PATTERN_DEFAULT =
+            "~~/stor/kafka/%t/%pp/%yyyy-%MM-%dd-%HH-%mm-%ss-%oooooooooooooooooooo.data";
     public static final String MANTA_OBJECT_CLASS = "manta.object.class";
     public static final String MANTA_OBJECT_LIMIT_COUNT = "manta.object.count";
     public static final String MANTA_OBJECT_LIMIT_SIZE = "manta.object.size";
@@ -25,7 +26,8 @@ public class MantaSinkConfigDef extends ConfigDef {
 
     private ConfigDef config;
 
-    public MantaSinkConfigDef(final ConfigContext context) {} // TODO: import settings from ConfigContext?
+    // TODO: import settings from ConfigContext?
+    public MantaSinkConfigDef(final ConfigContext context) {}
 
     public MantaSinkConfigDef(final Properties props) {
         // super(config, props);
@@ -35,17 +37,24 @@ public class MantaSinkConfigDef extends ConfigDef {
     public MantaSinkConfigDef() {
         super();
 
-        define(KEY_PATH, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Manta Key Location");
+        define(KEY_PATH, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,
+                "Manta Key Location");
 
 
-        define(MANTA_OBJECT_PATTERN, Type.STRING, MANTA_OBJECT_PATTERN_DEFAULT, Importance.HIGH, "Manta pathname for kafka topic");
-        define(MANTA_OBJECT_CLASS, Type.STRING, "java.util.zip.GZIPOutputStream", Importance.HIGH, "Type of stream");
-        define(MANTA_URL, Type.STRING, "https://us-east.manta.joyent.com", Importance.HIGH, "Manta service endpoint");
+        define(MANTA_OBJECT_PATTERN, Type.STRING, MANTA_OBJECT_PATTERN_DEFAULT,
+                Importance.HIGH, "Manta pathname for kafka topic");
+        define(MANTA_OBJECT_CLASS, Type.STRING, "java.util.zip.GZIPOutputStream",
+                Importance.HIGH, "Type of stream");
+        define(MANTA_URL, Type.STRING, "https://us-east.manta.joyent.com",
+                Importance.HIGH, "Manta service endpoint");
 
-        define(MANTA_OBJECT_LIMIT_COUNT, Type.LONG, -1, Importance.LOW, "Limit number of records per object");
-        define(MANTA_OBJECT_LIMIT_SIZE, Type.LONG, -1, Importance.LOW, "Limit the object file size");
+        define(MANTA_OBJECT_LIMIT_COUNT, Type.LONG, -1, Importance.LOW,
+                "Limit number of records per object");
+        define(MANTA_OBJECT_LIMIT_SIZE, Type.LONG, -1, Importance.LOW,
+                "Limit the object file size");
 
-        define(MANTA_SIMULATE_FAILURE, Type.STRING, "", Importance.LOW, "Raise an exception if this file exists");
+        define(MANTA_SIMULATE_FAILURE, Type.STRING, "", Importance.LOW,
+                "Raise an exception if this file exists");
 
     }
 

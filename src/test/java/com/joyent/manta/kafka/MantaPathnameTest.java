@@ -19,7 +19,8 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class MantaPathnameTest {
     private static final String MANTA_HOME_DIRECTORY = "/USER-HOME";
-    private static final ZonedDateTime TEST_TIME = ZonedDateTime.parse("2017-11-08T21:05:07.793Z");
+    private static final ZonedDateTime TEST_TIME =
+            ZonedDateTime.parse("2017-11-08T21:05:07.793Z");
     private static final int KAFKA_PARTITION = 1234;
     private static final long KAFKA_OFFSET = 4321;
     private static final String KAFKA_TOPIC = "TOPIC";
@@ -41,27 +42,31 @@ public class MantaPathnameTest {
 
     @Test
     public void getDirectory() throws Exception {
-        MantaPathname path = new MantaPathname(context, "/foo/bar", sinkRecord);
+        MantaPathname path = new MantaPathname(context, "/foo/bar",
+                sinkRecord);
         assertThat(path.getDirectory()).isEqualTo("/foo");
     }
 
     @Test
     public void ensure_Generate_UserHome_when_relative_path_used() {
-        MantaPathname path = new MantaPathname(context, "stor/kafka/path", sinkRecord);
+        MantaPathname path = new MantaPathname(context, "stor/kafka/path",
+                sinkRecord);
 
         assertThat(path.toString()).startsWith(MANTA_HOME_DIRECTORY);
     }
 
     @Test
     public void ensure_Generate_UserHome_when_tilde_prefix_used() {
-        MantaPathname path = new MantaPathname(context, "~~/stor/kafka/path", sinkRecord);
+        MantaPathname path = new MantaPathname(context, "~~/stor/kafka/path",
+                sinkRecord);
 
         assertThat(path.toString()).startsWith(MANTA_HOME_DIRECTORY);
     }
 
     @Test
     public void ensure_notGenerating_UserHome_when_absolutePathUsed() {
-        MantaPathname path = new MantaPathname(context, "/admin/kafka/path", sinkRecord);
+        MantaPathname path = new MantaPathname(context, "/admin/kafka/path",
+                sinkRecord);
 
         assertThat(path.toString()).doesNotStartWith(MANTA_HOME_DIRECTORY);
     }
@@ -106,7 +111,8 @@ public class MantaPathnameTest {
         assertPathLastSegmentEquals("~~/%ss", "07");
     }
 
-    private void assertPathLastSegmentEquals(final String pathLiteral, final String expected) {
+    private void assertPathLastSegmentEquals(final String pathLiteral,
+                                             final String expected) {
         MantaPathname pathname = new MantaPathname(context, pathLiteral, sinkRecord);
         String mantaPath = pathname.toString(TEST_TIME);
         String lastSegment = Paths.get(mantaPath).getFileName().toString();
