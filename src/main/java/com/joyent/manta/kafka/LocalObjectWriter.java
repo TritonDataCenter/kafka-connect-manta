@@ -1,5 +1,6 @@
 package com.joyent.manta.kafka;
 
+import org.apache.commons.io.output.CountingOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,10 +27,11 @@ import java.nio.file.Files;
 public class LocalObjectWriter implements AutoCloseable, Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(LocalObjectWriter.class);
 
-    private File file;
+    private final File file;
     private long writtenBytes;
     private long writtenCount;
-    private PrintWriter writer;
+    private final PrintWriter writer;
+    private CountingOutputStream countingOutputStream;
 
     /**
      * Create a <code>LocalObjectWriter</code>.
@@ -46,8 +48,11 @@ public class LocalObjectWriter implements AutoCloseable, Closeable {
      * @throws IOException
      */
     public LocalObjectWriter(final String className) throws IOException {
-        file = File.createTempFile("kafka-manta-sink", null);
-        writer = new PrintWriter(new OutputStreamWriter(createStream(className, file), StandardCharsets.UTF_8), false);
+        this.file = File.createTempFile("kafka-manta-sink", null);
+        final OutputStream innerStream = createStream(className, file);
+        this.countingOutputStream = new CountingOutputStream(innerStream);
+        final OutputStreamWriter outputStreamWriter = new OutputStreamWriter(innerStream, StandardCharsets.UTF_8);
+        this.writer = new PrintWriter(outputStreamWriter, false);
     }
 
     private OutputStream createStream(final String className, final File newFile) throws FileNotFoundException {
@@ -87,11 +92,8 @@ public class LocalObjectWriter implements AutoCloseable, Closeable {
      * @return the byte size of the underlying file.
      */
     public long getSize() {
-        // Note that this may not be the ideal way to get the actual size of the file, However, if the user gave
-        // java.util.zip.GZIPOutputstream as the type of the stream in the constructor, there is no way to get the
-        // actual size of the file from the stream itself.
         writer.flush();
-        return file.length();
+        return countingOutputStream.getByteCount();
     }
 
     /**
@@ -124,7 +126,8 @@ public class LocalObjectWriter implements AutoCloseable, Closeable {
         try {
             Files.delete(file.toPath());
         } catch (IOException e) {
-            // ignored
+            String msg = String.format("Unable to delete file: %s", file);
+            LOG.warn(msg, e);
         }
     }
 }
