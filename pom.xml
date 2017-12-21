@@ -68,7 +68,7 @@
 
         <!-- Dependency versions -->
         <dependency.checkstyle.version>7.5.1</dependency.checkstyle.version>
-        <dependency.java-manta.version>3.1.6</dependency.java-manta.version>
+        <dependency.java-manta.version>3.2.1</dependency.java-manta.version>
         <dependency.kafka.version>0.11.0.1</dependency.kafka.version>
         <dependency.slf4j.version>1.7.25</dependency.slf4j.version>
         <!-- Test dependency versions -->
@@ -111,8 +111,14 @@
 
         <dependency>
             <groupId>com.joyent.manta</groupId>
-            <artifactId>java-manta-client</artifactId>
+            <artifactId>java-manta-client-unshaded</artifactId>
             <version>${dependency.java-manta.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
